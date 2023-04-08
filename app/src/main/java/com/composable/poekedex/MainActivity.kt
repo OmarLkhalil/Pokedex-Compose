@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.composable.poekedex.pokemonlist.PokemonListScreen
 import com.composable.poekedex.ui.theme.JetpackComposePokedexTheme
 
 /**
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
                 NavHost(navController = navController, startDestination = "pokemon_list_screen"){
                     // Add a composable for the "pokemon_list_screen".
                     composable("pokemon_list_screen"){
-                        // TODO: Add content for the "pokemon_list_screen".
+                       PokemonListScreen(navController = navController)
                     }
                     // Add a composable for the "pokemon_detail_screen".
                     composable("pokemon_detail_screen", arguments = listOf(
