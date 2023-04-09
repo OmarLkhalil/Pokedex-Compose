@@ -3,10 +3,11 @@ package com.composable.poekedex.pokemonlist
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
@@ -111,19 +112,18 @@ class PokemonListViewModel @Inject constructor(
     }
 
     /**
-     * Calculates the dominant color of the given [drawable] using the [Palette] API and invokes
-     * [onFinish] with the resulting [Color].
+     * Calculates the dominant color of the given [drawable] using the [Palette] API and returns
+     * the resulting [Color].
      *
      * @param drawable The drawable for which to calculate the dominant color.
-     * @param onFinish The callback function to invoke with the resulting [Color].
+     * @return The dominant color of the given [drawable].
      */
-    fun calcDomaintColor(drawable: Drawable, onFinish: (Color) -> Unit){
-        val bmp = (drawable as BitmapDrawable).bitmap.copy(Bitmap.Config.ARGB_8888, true)
-
-        Palette.from(bmp).generate { palette ->
-            palette?.dominantSwatch?.rgb?.let { colorValue ->
-                onFinish(Color(colorValue))
-            }
-        }
+    @Composable
+    fun calculateDominantColor(drawable: Drawable): Color {
+        val bitmap = (drawable as BitmapDrawable).bitmap.copy(Bitmap.Config.ARGB_8888, true)
+        val palette = Palette.from(bitmap).generate()
+        val dominantColor = palette?.dominantSwatch?.rgb ?: MaterialTheme.colors.surface.toArgb()
+        return Color(dominantColor)
     }
+
 }

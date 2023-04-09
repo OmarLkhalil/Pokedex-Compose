@@ -1,6 +1,6 @@
 package com.composable.poekedex.pokemonlist
 
-import android.graphics.drawable.Drawable
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,21 +20,23 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.*
 import coil.request.ImageRequest
 import com.composable.poekedex.R
 import com.composable.poekedex.data.models.PokedexListEntry
 import com.composable.poekedex.ui.theme.RobotoCondensed
-import coil.annotation.ExperimentalCoilApi
-import coil.compose.rememberImagePainter
 
 /**
  * Composable function that represents the PokemonListScreen.
@@ -181,23 +183,19 @@ fun PokemonList(
  * @param modifier optional [Modifier] for styling/layout
  * @param viewModel optional [PokemonListViewModel] used to calculate the dominant color
  */
+
 @Composable
 fun PokedexEntry(
     entry: PokedexListEntry,
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: PokemonListViewModel = hiltViewModel(),
-    builder : ImageRequest.Builder.() -> Unit
+    viewModel: PokemonListViewModel = hiltViewModel()
 ) {
-    // Initialize the default dominant color
     val defaultDominantColor = MaterialTheme.colors.surface
-
-    // Initialize a mutable state variable to hold the dominant color
     var dominantColor by remember {
         mutableStateOf(defaultDominantColor)
     }
 
-    // Display a box that contains the Pokedex entry
     Box(
         contentAlignment = Center,
         modifier = modifier
@@ -205,40 +203,43 @@ fun PokedexEntry(
             .clip(RoundedCornerShape(10.dp))
             .aspectRatio(1f)
             .background(
-                Brush.verticalGradient(listOf(dominantColor, defaultDominantColor))
+                Brush.verticalGradient(
+                    listOf(
+                        dominantColor,
+                        defaultDominantColor
+                    )
+                )
             )
             .clickable {
-                // Navigate to the Pokemon detail screen with the dominant color and name as arguments
                 navController.navigate(
                     "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
                 )
             }
     ) {
         Column {
-            // Display an image of the Pokemon using CoilImage
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .align(CenterHorizontally)
-            ) {
-                Image(
-                    painter = rememberImagePainter(
-                        data = entry.imageUrl,
-                        builder = builder
-                    ),
-                    contentDescription = entry.pokemonName,
-                    modifier = Modifier.fillMaxSize()
-                )
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = 8.dp,
-                    modifier = Modifier.size(120.dp)
-                ) {
-                    Box(Modifier.background(color = dominantColor)) {}
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(entry.imageUrl)
+                    .build(),
+                contentDescription = entry.pokemonName,
+                loading = {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colors.primary,
+                        modifier = Modifier.scale(0.5f)
+                    )
+                },
+                success = { success ->
+                    dominantColor = viewModel.calculateDominantColor(success.result.drawable)
+                    Image(
+                        bitmap = success.result.drawable.toBitmap().asImageBitmap(),
+                        contentDescription = entry.pokemonName,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(120.dp)
+                            .align((Center))
+                    )
                 }
-
-            }
-            // Display the name of the Pokemon
+            )
             Text(
                 text = entry.pokemonName,
                 fontFamily = RobotoCondensed,
@@ -249,6 +250,7 @@ fun PokedexEntry(
         }
     }
 }
+
 
 /**
  * A composable function that displays a row of Pokedex entries.
@@ -262,8 +264,6 @@ fun PokedexRow(
     rowIndex: Int,
     entries: List<PokedexListEntry>,
     navController: NavController,
-    builder: ImageRequest.Builder.() -> Unit = { },
-
     ) {
     Column {
         // Display a row of two Pokedex entries
@@ -272,7 +272,6 @@ fun PokedexRow(
                 entry = entries[rowIndex * 2],
                 navController = navController,
                 modifier = Modifier.weight(1f),
-                builder = builder
             )
             Spacer(modifier = Modifier.width(16.dp))
             if(entries.size >= rowIndex * 2 + 2) {
@@ -280,7 +279,6 @@ fun PokedexRow(
                     entry = entries[rowIndex * 2 + 1],
                     navController = navController,
                     modifier = Modifier.weight(1f),
-                    builder = builder
                 )
             } else {
                 Spacer(modifier = Modifier.weight(1f))
