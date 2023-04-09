@@ -16,9 +16,9 @@ class PokeApplication : Application() {
      * created. This method is used to initialize the application and set up any necessary
      * components.
      */
-    override fun onCreate() {
-        super.onCreate()
-        // Plant a new instance of Timber's DebugTree, which is used for logging during development.
-        Timber.plant(Timber.DebugTree())
-    }
+//    override fun onCreate() {
+//        super.onCreate()
+//        // Plant a new instance of Timber's DebugTree, which is used for logging during development.
+//        Timber.plant(Timber.DebugTree())
+//    }
 }

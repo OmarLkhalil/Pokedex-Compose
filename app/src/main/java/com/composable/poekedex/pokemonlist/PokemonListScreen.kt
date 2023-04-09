@@ -1,18 +1,16 @@
 package com.composable.poekedex.pokemonlist
 
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -31,13 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.Coil
 import coil.request.ImageRequest
-import coil.request.ImageResult
 import com.composable.poekedex.R
 import com.composable.poekedex.data.models.PokedexListEntry
 import com.composable.poekedex.ui.theme.RobotoCondensed
-import com.google.accompanist.coil.CoilImage
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.rememberImagePainter
 
 /**
  * Composable function that represents the PokemonListScreen.
@@ -66,7 +63,9 @@ fun PokemonListScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
                 hint = "Search Pokemon"
-            )
+            ){}
+            Spacer(modifier = Modifier.height(16.dp))
+            PokemonList(navController = navController)
         }
     }
 }
@@ -122,6 +121,57 @@ fun SearchBar(
         }
     }
 }
+/**
+ * Composable function that displays the list of pokemons using a lazy column.
+ *
+ * @param navController The [NavController] that will be used for navigation between screens.
+ * @param viewModel The [PokemonListViewModel] that will be used for getting the list of pokemons.
+ */
+
+@Composable
+fun PokemonList(
+    navController: NavController,
+    viewModel: PokemonListViewModel = hiltViewModel()
+){
+    // Retrieve the required states from the view model
+    val pokemonList by remember {viewModel.pokemonList}
+    val endReached by remember {viewModel.endReached}
+    val loadError by remember {viewModel.loadError}
+    val isLoading by remember {viewModel.isLoading}
+
+    // Display the list of pokemons using a lazy column
+    LazyColumn(contentPadding = PaddingValues(16.dp)){
+        val itemCount = if(pokemonList.size % 2 ==0){
+            pokemonList.size / 2
+        }
+        else {
+            pokemonList.size / 2 + 1
+        }
+        items(itemCount){
+            // Load more pokemons when end of list is reached
+            if(it >= itemCount -1 && !endReached){
+                viewModel.loadPokemonPaginated()
+            }
+            PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
+        }
+    }
+
+    // Show a progress indicator or a retry button if an error occurred
+    Box(
+        contentAlignment = Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        if(isLoading) {
+            CircularProgressIndicator(color = MaterialTheme.colors.primary)
+        }
+        if(loadError.isNotEmpty()) {
+            RetrySection(error = loadError) {
+                viewModel.loadPokemonPaginated()
+            }
+        }
+    }
+}
+
 
 /**
  * A composable function that displays a single entry in the Pokedex.
@@ -136,7 +186,8 @@ fun PokedexEntry(
     entry: PokedexListEntry,
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: PokemonListViewModel = hiltViewModel()
+    viewModel: PokemonListViewModel = hiltViewModel(),
+    builder : ImageRequest.Builder.() -> Unit
 ) {
     // Initialize the default dominant color
     val defaultDominantColor = MaterialTheme.colors.surface
@@ -165,29 +216,28 @@ fun PokedexEntry(
     ) {
         Column {
             // Display an image of the Pokemon using CoilImage
-            CoilImage(
-                request = ImageRequest.Builder(LocalContext.current)
-                    .data(entry.imageUrl)
-                    .target {
-                        // Calculate the dominant color from the image and update the dominant color variable
-                        viewModel.calcDomaintColor(it) { color ->
-                            dominantColor = color
-                        }
-                    }
-                    .build(),
-                contentDescription = entry.pokemonName,
-                fadeIn = true,
+            Box(
                 modifier = Modifier
                     .size(120.dp)
                     .align(CenterHorizontally)
             ) {
-                // If the image is not loaded yet, display a CircularProgressIndicator
-                CircularProgressIndicator(
-                    color = MaterialTheme.colors.primary,
-                    modifier = Modifier.scale(0.5f)
+                Image(
+                    painter = rememberImagePainter(
+                        data = entry.imageUrl,
+                        builder = builder
+                    ),
+                    contentDescription = entry.pokemonName,
+                    modifier = Modifier.fillMaxSize()
                 )
-            }
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = 8.dp,
+                    modifier = Modifier.size(120.dp)
+                ) {
+                    Box(Modifier.background(color = dominantColor)) {}
+                }
 
+            }
             // Display the name of the Pokemon
             Text(
                 text = entry.pokemonName,
@@ -211,27 +261,54 @@ fun PokedexEntry(
 fun PokedexRow(
     rowIndex: Int,
     entries: List<PokedexListEntry>,
-    navController: NavController
-) {
+    navController: NavController,
+    builder: ImageRequest.Builder.() -> Unit = { },
+
+    ) {
     Column {
         // Display a row of two Pokedex entries
         Row {
             PokedexEntry(
                 entry = entries[rowIndex * 2],
                 navController = navController,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                builder = builder
             )
             Spacer(modifier = Modifier.width(16.dp))
             if(entries.size >= rowIndex * 2 + 2) {
                 PokedexEntry(
                     entry = entries[rowIndex * 2 + 1],
                     navController = navController,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    builder = builder
                 )
             } else {
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+/**
+ * Composable function that displays an error message and a retry button.
+ *
+ * @param error The error message to display.
+ * @param onRetry The callback to be invoked when the retry button is clicked.
+ */
+@Composable
+fun RetrySection(
+    error: String,
+    onRetry: () -> Unit
+) {
+    Column {
+        Text(error, color = Color.Red, fontSize = 18.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = { onRetry() },
+            modifier = Modifier.align(CenterHorizontally)
+        ) {
+            Text(text = "Retry")
+        }
     }
 }

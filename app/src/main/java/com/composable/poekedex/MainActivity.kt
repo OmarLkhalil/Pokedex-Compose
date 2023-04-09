@@ -12,11 +12,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.composable.poekedex.pokemonlist.PokemonListScreen
 import com.composable.poekedex.ui.theme.JetpackComposePokedexTheme
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * The main activity of the Pokedex app. Extends ComponentActivity, which is a subclass of
  * Activity that adds support for lifecycle and other architectural components.
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
