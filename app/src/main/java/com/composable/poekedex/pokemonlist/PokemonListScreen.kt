@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -66,7 +67,7 @@ fun PokemonListScreen(
                     .fillMaxWidth()
                     .padding(16.dp),
                 hint = "Search Pokemon"
-            ){
+            ) {
                 viewModel.searchPokemonList(it)
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -126,6 +127,7 @@ fun SearchBar(
         }
     }
 }
+
 /**
  * Composable function that displays the list of pokemons using a lazy column.
  *
@@ -137,25 +139,24 @@ fun SearchBar(
 fun PokemonList(
     navController: NavController,
     viewModel: PokemonListViewModel = hiltViewModel()
-){
+) {
     // Retrieve the required states from the view model
-    val pokemonList by remember {viewModel.pokemonList}
-    val endReached by remember {viewModel.endReached}
-    val loadError by remember {viewModel.loadError}
-    val isLoading by remember {viewModel.isLoading}
-    val isSearching by remember {viewModel.isSearching}
+    val pokemonList by remember { viewModel.pokemonList }
+    val endReached by remember { viewModel.endReached }
+    val loadError by remember { viewModel.loadError }
+    val isLoading by remember { viewModel.isLoading }
+    val isSearching by remember { viewModel.isSearching }
 
     // Display the list of pokemons using a lazy column
-    LazyColumn(contentPadding = PaddingValues(16.dp)){
-        val itemCount = if(pokemonList.size % 2 ==0){
+    LazyColumn(contentPadding = PaddingValues(16.dp)) {
+        val itemCount = if (pokemonList.size % 2 == 0) {
             pokemonList.size / 2
-        }
-        else {
+        } else {
             pokemonList.size / 2 + 1
         }
-        items(itemCount){
+        items(itemCount) {
             // Load more pokemons when end of list is reached
-            if(it >= itemCount -1 && !endReached && !isLoading && !isSearching){
+            if (it >= itemCount - 1 && !endReached && !isLoading && !isSearching) {
                 viewModel.loadPokemonPaginated()
             }
             PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
@@ -167,17 +168,16 @@ fun PokemonList(
         contentAlignment = Center,
         modifier = Modifier.fillMaxSize()
     ) {
-        if(isLoading) {
+        if (isLoading) {
             CircularProgressIndicator(color = MaterialTheme.colors.primary)
         }
-        if(loadError.isNotEmpty()) {
+        if (loadError.isNotEmpty()) {
             RetrySection(error = loadError) {
                 viewModel.loadPokemonPaginated()
             }
         }
     }
 }
-
 
 /**
  * A composable function that displays a single entry in the Pokedex.
@@ -199,7 +199,6 @@ fun PokedexEntry(
     var dominantColor by remember {
         mutableStateOf(defaultDominantColor)
     }
-
     Box(
         contentAlignment = Center,
         modifier = modifier
@@ -240,7 +239,7 @@ fun PokedexEntry(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(120.dp)
-                            .align((Center))
+                            .align(alignment = Center)
                     )
                 }
             )
@@ -267,7 +266,7 @@ fun PokedexRow(
     rowIndex: Int,
     entries: List<PokedexListEntry>,
     navController: NavController,
-    ) {
+) {
     Column {
         // Display a row of two Pokedex entries
         Row {
@@ -277,7 +276,7 @@ fun PokedexRow(
                 modifier = Modifier.weight(1f),
             )
             Spacer(modifier = Modifier.width(16.dp))
-            if(entries.size >= rowIndex * 2 + 2) {
+            if (entries.size >= rowIndex * 2 + 2) {
                 PokedexEntry(
                     entry = entries[rowIndex * 2 + 1],
                     navController = navController,
