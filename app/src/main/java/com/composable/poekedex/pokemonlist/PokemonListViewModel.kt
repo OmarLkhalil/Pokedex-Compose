@@ -16,6 +16,7 @@ import com.composable.poekedex.repository.PokeRepository
 import com.composable.poekedex.utils.Constants.PAGE_SIZE
 import com.composable.poekedex.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -23,7 +24,7 @@ import javax.inject.Inject
 
 /**
  * ViewModel for the Pokemon List screen. Uses [PokeRepository] to fetch data and exposes
- * [calcDomaintColor] function to calculate the dominant color of a given Drawable.
+ * [calculateDominantColor] function to calculate the dominant color of a given Drawable.
  */
 @HiltViewModel
 class PokemonListViewModel @Inject constructor(
@@ -44,10 +45,42 @@ class PokemonListViewModel @Inject constructor(
     // A boolean representing whether or not all available Pokemon entries have been loaded
     var endReached   = mutableStateOf(false)
 
+    private var chachedPokemonList = listOf<PokedexListEntry>()
+    private var isSearchStarting = true
+    var isSearching = mutableStateOf(false)
+
 
     init {
         loadPokemonPaginated()
     }
+
+    fun searchPokemonList(query: String){
+        val listToSearch = if(isSearchStarting){
+            pokemonList.value
+        } else {
+            chachedPokemonList
+        }
+
+        viewModelScope.launch(Dispatchers.Default) {
+            if(query.isEmpty()){
+                pokemonList.value = chachedPokemonList
+                isSearching.value = false
+                isSearchStarting = true
+                return@launch
+            }
+            val results = listToSearch.filter{
+                it.pokemonName.contains(query.trim(), ignoreCase = true) ||
+                        it.number.toString() == query.trim()
+            }
+            if(isSearchStarting){
+                chachedPokemonList = pokemonList.value
+                isSearchStarting = false
+            }
+            pokemonList.value = results
+            isSearching.value = true
+        }
+    }
+
     // A function for loading Pokemon entries in a paginated manner
     fun loadPokemonPaginated() {
 
@@ -122,7 +155,7 @@ class PokemonListViewModel @Inject constructor(
     fun calculateDominantColor(drawable: Drawable): Color {
         val bitmap = (drawable as BitmapDrawable).bitmap.copy(Bitmap.Config.ARGB_8888, true)
         val palette = Palette.from(bitmap).generate()
-        val dominantColor = palette?.dominantSwatch?.rgb ?: MaterialTheme.colors.surface.toArgb()
+        val dominantColor = palette.dominantSwatch?.rgb ?: MaterialTheme.colors.surface.toArgb()
         return Color(dominantColor)
     }
 
