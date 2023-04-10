@@ -140,6 +140,12 @@ class PokemonListViewModel @Inject constructor(
                     loadError.value = result.message!!
                     isLoading.value = false
                 }
+                else -> {
+                    // Set the load error string and clear the loading indicator
+                    loadError.value = "Unknown error"
+                    isLoading.value = false
+
+                }
             }
         }
     }
