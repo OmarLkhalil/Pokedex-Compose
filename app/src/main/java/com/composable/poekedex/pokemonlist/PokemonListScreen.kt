@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -157,7 +156,9 @@ fun PokemonList(
         items(itemCount) {
             // Load more pokemons when end of list is reached
             if (it >= itemCount - 1 && !endReached && !isLoading && !isSearching) {
-                viewModel.loadPokemonPaginated()
+                LaunchedEffect(key1 = true) {
+                    viewModel.loadPokemonPaginated()
+                }
             }
             PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
@@ -187,7 +188,6 @@ fun PokemonList(
  * @param modifier optional [Modifier] for styling/layout
  * @param viewModel optional [PokemonListViewModel] used to calculate the dominant color
  */
-
 @Composable
 fun PokedexEntry(
     entry: PokedexListEntry,
