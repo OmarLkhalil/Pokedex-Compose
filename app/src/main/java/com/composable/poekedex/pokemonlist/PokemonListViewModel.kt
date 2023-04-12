@@ -58,6 +58,8 @@ class PokemonListViewModel @Inject constructor(
         val listToSearch = if(isSearchStarting){
             pokemonList.value
         } else {
+            // Using cached list is because it must search the entire list
+            // so If user give a query to a pokemon that is not loaded yet now he can also find it
             chachedPokemonList
         }
 
@@ -149,7 +151,6 @@ class PokemonListViewModel @Inject constructor(
             }
         }
     }
-
     /**
      * Calculates the dominant color of the given [drawable] using the [Palette] API and returns
      * the resulting [Color].
@@ -164,5 +165,4 @@ class PokemonListViewModel @Inject constructor(
         val dominantColor = palette.dominantSwatch?.rgb ?: MaterialTheme.colors.surface.toArgb()
         return Color(dominantColor)
     }
-
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -50,7 +51,7 @@ fun PokemonListScreen(
 ) {
     Surface(
         color = MaterialTheme.colors.background,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxSize()
     ) {
         Column {
             Spacer(modifier = Modifier.height(20.dp))
@@ -69,7 +70,7 @@ fun PokemonListScreen(
             ) {
                 viewModel.searchPokemonList(it)
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             PokemonList(navController = navController)
         }
     }
@@ -146,8 +147,11 @@ fun PokemonList(
     val isLoading by remember { viewModel.isLoading }
     val isSearching by remember { viewModel.isSearching }
 
+
     // Display the list of pokemons using a lazy column
-    LazyColumn(contentPadding = PaddingValues(16.dp)) {
+    LazyColumn(contentPadding = PaddingValues(15.dp)) {
+        // calculate the number of items to be displayed based on the size of the pokemonlist
+        // The formula used here no ensure that each row contains two items except for the last row if the list size is odd,
         val itemCount = if (pokemonList.size % 2 == 0) {
             pokemonList.size / 2
         } else {
@@ -219,7 +223,9 @@ fun PokedexEntry(
                 )
             }
     ) {
-        Column {
+        Column(
+            horizontalAlignment = CenterHorizontally
+        ) {
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(entry.imageUrl)
@@ -239,7 +245,7 @@ fun PokedexEntry(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(120.dp)
-                            .align(alignment = Center)
+                            .padding()
                     )
                 }
             )

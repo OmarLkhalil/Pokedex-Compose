@@ -354,7 +354,6 @@ fun PokemonDetailSection(
 }
 /**
  * Composable function that displays a Pokemon stat as a progress bar.
- *
  * @param statName the name of the stat to display
  * @param statValue the current value of the stat
  * @param statMaxValue the maximum value of the stat
@@ -389,7 +388,6 @@ fun PokemonStat(
     LaunchedEffect(key1 = true) {
         animationPlayed = true
     }
-
     // Displays the progress bar with the stat name and value
     Box(
         modifier = Modifier
