@@ -11,12 +11,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
@@ -38,6 +36,9 @@ import coil.request.ImageRequest
 import com.composable.poekedex.R
 import com.composable.poekedex.data.models.PokedexListEntry
 import com.composable.poekedex.ui.theme.RobotoCondensed
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import me.vponomarenko.compose.shimmer.shimmer
 
 /**
  * Composable function that represents the PokemonListScreen.
@@ -53,25 +54,32 @@ fun PokemonListScreen(
         color = MaterialTheme.colors.background,
         modifier = Modifier.fillMaxSize()
     ) {
-        Column {
-            Spacer(modifier = Modifier.height(20.dp))
-            Image(
-                painter = painterResource(id = R.drawable.ic_logo),
-                contentDescription = "PokemonLogo",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(CenterHorizontally)
-            )
-            SearchBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                hint = "Search Pokemon"
-            ) {
-                viewModel.searchPokemonList(it)
+        val state = rememberSwipeRefreshState(isRefreshing = false)
+        SwipeRefresh(state = state,
+            onRefresh = { viewModel.RefreshPokemonList()
+            state.isRefreshing = false
             }
-            Spacer(modifier = Modifier.height(10.dp))
-            PokemonList(navController = navController)
+        ) {
+            Column {
+                Spacer(modifier = Modifier.height(20.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.ic_logo),
+                    contentDescription = "PokemonLogo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(CenterHorizontally)
+                )
+                SearchBar(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    hint = "Search Pokemon"
+                ) {
+                    viewModel.searchPokemonList(it)
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                PokemonList(navController = navController)
+            }
         }
     }
 }
@@ -224,7 +232,7 @@ fun PokedexEntry(
             }
     ) {
         Column(
-            horizontalAlignment = CenterHorizontally
+            horizontalAlignment = CenterHorizontally,
         ) {
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -232,9 +240,17 @@ fun PokedexEntry(
                     .build(),
                 contentDescription = entry.pokemonName,
                 loading = {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colors.primary,
-                        modifier = Modifier.scale(0.5f)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .height(120.dp)
+                            .shimmer(
+                                durationMs = 1000,
+                            )
+                            .background(
+                                color = Color(0xFFF3F3F3),
+                                shape = RoundedCornerShape(4.dp)
+                            )
                     )
                 },
                 success = { success ->

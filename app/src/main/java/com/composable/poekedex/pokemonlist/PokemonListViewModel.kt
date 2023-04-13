@@ -165,4 +165,10 @@ class PokemonListViewModel @Inject constructor(
         val dominantColor = palette.dominantSwatch?.rgb ?: MaterialTheme.colors.surface.toArgb()
         return Color(dominantColor)
     }
+
+    fun RefreshPokemonList() {
+        curPage = 0
+        pokemonList.value = listOf()
+        loadPokemonPaginated()
+    }
 }

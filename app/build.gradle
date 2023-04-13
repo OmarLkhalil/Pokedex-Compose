@@ -24,9 +24,14 @@ android {
     }
 
     buildTypes {
+
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            testCoverageEnabled true
         }
     }
     compileOptions {
@@ -115,5 +120,9 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:4.2.0'
     androidTestImplementation 'org.mockito:mockito-android:3.12.4'
 
+    implementation "me.vponomarenko:compose-shimmer:1.0.0"
+    implementation "com.google.accompanist:accompanist-swiperefresh:0.31.0-alpha"
+
+    implementation 'com.valentinilk.shimmer:compose-shimmer:1.0.4'
 
 }
